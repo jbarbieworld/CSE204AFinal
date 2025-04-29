@@ -7,6 +7,11 @@ const departmentMap = {
     "greek" : 13
 }
 
+let artistName = "";
+let title = "";
+let period = "";
+let labelClicked = false;
+
 const queryLetters = "abcdefghijlmnoprstuw"
 
 function getRandomLetter(){
@@ -20,8 +25,14 @@ $(document).ready(function(){
     $("#backButton").click(function(){
         const output = document.getElementById("outputImage");
         $("#map_image").show();
+        $("#backButton").hide();
+        $(".artwork_container").css({
+            visibility: "hidden"
+        });
+
         output.src = "";
-        document.getElementById("labelText").innerHTML = "";  
+        const label = document.getElementById("labelText");
+        label.innerHTML = "";
 
         
         
@@ -32,6 +43,10 @@ $(document).ready(function(){
     $('area').click(function(){
         console.log(this.title)
         $("#map_image").hide();
+        $("#backButton").show();
+        $(".artwork_container").css({
+            visibility: "visible"
+        });
         const output = document.getElementById("outputImage");
         const departmentId = departmentMap[this.title];
         const query = getRandomLetter();
@@ -57,7 +72,16 @@ $(document).ready(function(){
                          console.log(data2);
                          if (data2.primaryImageSmall) { 
                              output.src = data2.primaryImageSmall; 
-                             document.getElementById("labelText").innerHTML = data2.title;  
+                              
+                             if(data2.artistDisplayName){
+                                artistName = data2.artistDisplayName
+                             } 
+                             else{
+                                artistName = "Unknown"
+                             }
+                             period = data2.objectDate;
+                             title = data2.title;
+                             document.getElementById("labelText").innerHTML = data2.title;
                              return; 
                          } 
                          index++; 
@@ -74,10 +98,14 @@ $(document).ready(function(){
 
 
 $(document).ready(function(){
+    const label = document.getElementById("labelText");
+
     $("#label").click(function(){
+
         // Show and fade in the background overlay
         $("#overlay").fadeIn(300)
-        
+        label.innerHTML += "<br />" + `Artist: ${artistName}` + "<br />" + `Date: ${period}`;
+        labelClicked = true;
         // Animate the div to the center and make it bigger
         $(this).css({
             top: "50%",
@@ -85,10 +113,22 @@ $(document).ready(function(){
             transform: "translate(-50%, -50%) scale(1.5)",
         });
     });
+    $("#label").hover(function(){
+        if(!labelClicked){
+            $(this).css("transform", "scale(1.1)");
+        }
+        }, 
+        function(){
+            if(!labelClicked){
+                $(this).css("transform", "scale(1)");
+            }
+      });
 
     // Optional: click on overlay to reset everything
     $("#overlay").click(function(){
         $("#overlay").fadeOut(300);
+        label.innerHTML = title;
+        labelClicked = false;
         $("#label").css({
             top: "100px",
             left: "100px",
