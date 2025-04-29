@@ -15,6 +15,8 @@ let title = "";
 let period = "";
 let labelClicked = false;
 let originalRect = null;
+let objectIDs = [];
+let currentIndex = 0;
 
 
 const queryLetters = "abcdefghijlmnoprstuw"
@@ -32,6 +34,7 @@ $(document).ready(function(){
         const output = document.getElementById("outputImage");
         $("#map_image").show();
         $("#backButton").hide();
+        $("#nextButton").hide();
         $(".artwork_container").css({
             visibility: "hidden"
         });
@@ -46,81 +49,39 @@ $(document).ready(function(){
 });
 
 $(document).ready(function(){
-    $('area').click(function(){
-        console.log(this.title)
+    $('area').click(function () {
+        console.log(this.title);
         $("#map_image").hide();
         $("#backButton").show();
-        $(".artwork_container").css({
-            visibility: "visible"
-        });
+        $("#nextButton").show();
+       // $("#nextButton").show();
+        $(".artwork_container").css({ visibility: "visible" });
         $("#overlay2").fadeIn(300);
+    
         const output = document.getElementById("outputImage");
         const departmentId = departmentMap[this.title];
         const query = getRandomLetter();
-         fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=${departmentId}&q=${query}`)
-             .then(response => {
-             if (!response.ok) {
-                 throw new Error('Network response was not ok');
-             }
-             return response.json();
-             })
-             .then(data => {
-               let index = 0;
-             function fetchImage() {
-                 if (index >= data.objectIDs.length || index >= 20) return; 
-                 fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${data.objectIDs[index]}`)
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error('Network response was not ok');
-                         }
-                         return response.json();
-                     })
-                     .then(data2 => {
-                         console.log(data2);
-                         if (data2.primaryImageSmall) { 
-                             $("#overlay2").fadeOut(300);
-                             output.src = data2.primaryImageSmall; 
-                              
-                             if(data2.artistDisplayName){
-                                artistName = data2.artistDisplayName
-                             } 
-                             else{
-                                artistName = "Unknown"
-                             }
-                             period = data2.objectDate;
-                             title = data2.title;
-                             document.getElementById("labelText").innerHTML = data2.title;
-                             return; 
-                         } 
-                         index++; 
-                         fetchImage(); 
-                     })
-                     .catch(error => console.error(error));
-             }
-             fetchImage(); 
-           });
-        
-
+    
+        fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=${departmentId}&q=${query}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                objectIDs = data.objectIDs || [];
+                console.log(objectIDs);
+                currentIndex = 0;
+                fetchAndDisplayImage();
+            });
     });
 });
 
 
-$(document).ready(function(){
+/*$(document).ready(function(){
     const label = document.getElementById("labelText");
 
     $("#label").click(function(e){
-        /*e.stopPropagation();
-        $("#overlay").fadeIn(300)
-        if(!labelClicked){
-             label.innerHTML += "<br />" + `Artist: ${artistName}` + "<br />" + `Date: ${period}`;
-        }
-        labelClicked = true;
-        $(this).css({
-            position: "fixed", // ← changed from relative to fixed
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%) scale(1.5)",
-        });*/
+       
         e.stopPropagation();
         const $label = $(this);
     
@@ -191,7 +152,95 @@ $(document).ready(function(){
         }
     });
    
+});*/
+
+$(document).ready(function(){
+    const label = document.getElementById("labelText");
+
+    $("#label").click(function(e){
+        e.stopPropagation();
+        if (labelClicked) return;
+
+        // Show overlay
+        $("#overlay").fadeIn(300);
+
+        // Animate to center using only transform
+        $(this).css({
+            transform: "translate(-50%, -50%) scale(1.5)",
+            position: "relative",
+            top: "50%",
+            left: "50%",
+        });
+
+        // Add metadata
+        label.innerHTML += `<br />Artist: ${artistName}<br />Date: ${period}`;
+        labelClicked = true;
+    });
+
+    $("#label").hover(
+        function () {
+            if (!labelClicked) $(this).css("transform", "scale(1.1)");
+        },
+        function () {
+            if (!labelClicked) $(this).css("transform", "scale(1)");
+        }
+    );
+
+    $(document).click(function () {
+        if (labelClicked) {
+            $("#overlay").fadeOut(300);
+            label.innerHTML = title;
+            labelClicked = false;
+
+            // Revert transform, top/left
+            $("#label").css({
+                transform: "none",
+                top: "0",
+                left: "0"
+            });
+        }
+    });
 });
+
+function fetchAndDisplayImage() {
+    if (currentIndex >= objectIDs.length) {
+        alert("No more images.");
+        return;
+    }
+
+    const output = document.getElementById("outputImage");
+    const id = objectIDs[currentIndex];
+    console.log(`fetching : ${id}`);
+
+    fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data2 => {
+            if (data2.primaryImageSmall) {
+                $("#overlay2").fadeOut(300);
+                output.src = data2.primaryImageSmall;
+
+                artistName = data2.artistDisplayName || "Unknown";
+                period = data2.objectDate;
+                title = data2.title;
+                document.getElementById("labelText").innerHTML = title;
+            } else {
+                currentIndex++;
+                fetchAndDisplayImage(); // Skip and try next
+            }
+        })
+        .catch(error => console.error(error));
+}
+
+$(document).ready(function(){
+    $("#nextButton").click(function () {
+        currentIndex++;
+        fetchAndDisplayImage();
+    });
+});
+
 
 
 /*Debug functions
