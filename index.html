@@ -22,10 +22,15 @@
         <area target="" id = "american" alt="american" title="american"  coords="728,310,837,307,835,233,995,230,998,435,725,429" shape="poly" onclick="clicked(this.title)">
         <area target="" id = "lehman" alt="lehman" title="lehman"  coords="505,287,494,274,462,273,464,241,537,171,573,171,644,243,642,272,613,272,605,283,605,298" shape="poly" onclick="clicked(this.title)">
     </map>
-
-    <div id="output">
-        <img  id = "outputImage"></img>
+    <div class = "artwork_container">
+        <div class="output">
+            <img  id = "outputImage"></img>
+        </div>
+        <div class = "output" id = "label">
+            <p id = "labelText">hello</p>
+        </div>
     </div>
+    <div id="overlay"></div>
     <button id = "backButton">back</button>
     <!--<div id="test" style="width:80px;height:80px;background-color:red;"></div>-->
 </body>
