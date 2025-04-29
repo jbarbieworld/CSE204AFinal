@@ -100,13 +100,13 @@ $(document).ready(function(){
 $(document).ready(function(){
     const label = document.getElementById("labelText");
 
-    $("#label").click(function(){
-
-        // Show and fade in the background overlay
+    $("#label").click(function(e){
+        e.stopPropagation();
         $("#overlay").fadeIn(300)
-        label.innerHTML += "<br />" + `Artist: ${artistName}` + "<br />" + `Date: ${period}`;
+        if(!labelClicked){
+             label.innerHTML += "<br />" + `Artist: ${artistName}` + "<br />" + `Date: ${period}`;
+        }
         labelClicked = true;
-        // Animate the div to the center and make it bigger
         $(this).css({
             top: "50%",
             left: "50%",
@@ -124,9 +124,9 @@ $(document).ready(function(){
             }
       });
 
-    // Optional: click on overlay to reset everything
-    $("#overlay").click(function(){
-        $("#overlay").fadeOut(300);
+    $(document).click(function(){
+       if(labelClicked){
+         $("#overlay").fadeOut(300);
         label.innerHTML = title;
         labelClicked = false;
         $("#label").css({
@@ -134,7 +134,9 @@ $(document).ready(function(){
             left: "100px",
             transform: "none"
         });
+       }
     });
+   
 });
 
 

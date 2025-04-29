@@ -1,12 +1,17 @@
 .output {
     max-width: 800px;
-    padding: 20px;
+    padding: 50px;
     background-color: #fff;
     border-radius: 0.25rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 20;
 
   }
+  /*#outputImage{
+    border: 100px solid transparent;
+    border-image: url(frame.png) 30 round;
+   
+  }*/
   .artwork_container {
     display: flex;
     flex-direction: row;
