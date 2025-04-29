@@ -7,7 +7,8 @@ const departmentMap = {
     "greek" : 13,
     "american" : 1,
     "photos" : 9,
-    "islamic": 14
+    "islamic": 14,
+    "asian": 6
 }
 
 let artistName = "";
@@ -16,19 +17,16 @@ let period = "";
 let labelClicked = false;
 let originalRect = null;
 let objectIDs = [];
+let usedLetters = [];
 let currentIndex = 0;
 
 
-const queryLetters = "abcdefghijlmnoprstuw"
+let queryLetters = "abcdefghijlmnoprstuw"
 
-function getRandomLetter(){
-    const randomInd = Math.floor(Math.random() * queryLetters.length);
-    console.log(queryLetters.charAt(randomInd));
-    return queryLetters.charAt(randomInd);
-    
-}
 
- 
+
+
+ //Back button handling
 $(document).ready(function(){
     $("#backButton").click(function(){
         const output = document.getElementById("outputImage");
@@ -51,6 +49,17 @@ $(document).ready(function(){
     });
 });
 
+//Next button handling
+$(document).ready(function(){
+    $("#nextButton").click(function () {
+        currentIndex++;
+        $("#overlay2").fadeIn(300);
+        fetchAndDisplayImage();
+    });
+});
+
+
+//Image map handling -- fetches first image
 $(document).ready(function(){
     $('area').click(function () {
         console.log(this.title);
@@ -75,91 +84,14 @@ $(document).ready(function(){
             })
             .then(data => {
                 objectIDs = data.objectIDs || [];
-                console.log(objectIDs);
+               // console.log(objectIDs);
                 currentIndex = 0;
                 fetchAndDisplayImage();
             });
     });
 });
 
-
-/*$(document).ready(function(){
-    const label = document.getElementById("labelText");
-
-    $("#label").click(function(e){
-       
-        e.stopPropagation();
-        const $label = $(this);
-    
-        if (labelClicked) return;
-    
-        // Only store original position once
-        if (!originalRect) {
-            const rect = this.getBoundingClientRect();
-            originalRect = {
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height
-            };
-        }
-    
-        // Set fixed positioning using saved rect
-        $label.css({
-            position: "fixed",
-            top: originalRect.top + "px",
-            left: originalRect.left + "px",
-            width: originalRect.width + "px",
-            height: originalRect.height + "px"
-        });
-    
-        // Show overlay behind
-        $("#overlay").fadeIn(300);
-    
-        // Animate to center
-        setTimeout(() => {
-            $label.css({
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%) scale(1.5)",
-            });
-        }, 10);
-    
-        // Add metadata
-        label.innerHTML += "<br />" + `Artist: ${artistName}` + "<br />" + `Date: ${period}`;
-        labelClicked = true;
-    });
-    $("#label").hover(function(){
-        if(!labelClicked){
-            $(this).css("transform", "scale(1.1)");
-        }
-        }, 
-        function(){
-            if(!labelClicked){
-                $(this).css("transform", "scale(1)");
-            }
-      });
-
-    $(document).click(function(){
-        if (labelClicked) {
-            $("#overlay").fadeOut(300);
-            label.innerHTML = title;
-            labelClicked = false;
-    
-            $("#label").css({
-                position: "relative",
-                top: "0",
-                left: "0",
-                transform: "none",
-                width: "",
-                height: ""
-            });
-            //originalRect = null;
-        }
-    });
-   
-});*/
-
+//Interactive label handling 
 $(document).ready(function(){
     const label = document.getElementById("labelText");
     $("#label").click(function(e){
@@ -207,6 +139,7 @@ $(document).ready(function(){
     });
 });
 
+//Pre warming for label to prevent weirdness 
 $(document).ready(function () {
     // Pre-expand once invisibly to stabilize layout
     const $label = $("#label");
@@ -236,6 +169,7 @@ $(document).ready(function () {
     $label.css(originalStyles);
 });
 
+//function to fetch images -- requests until artwork with available image is found
 function fetchAndDisplayImage() {
     if (currentIndex >= objectIDs.length) {
         alert("No more images.");
@@ -244,7 +178,7 @@ function fetchAndDisplayImage() {
 
     const output = document.getElementById("outputImage");
     const id = objectIDs[currentIndex];
-    console.log(`fetching : ${id}`);
+   // console.log(`fetching : ${id}`);
 
     fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
         .then(response => {
@@ -268,13 +202,20 @@ function fetchAndDisplayImage() {
         .catch(error => console.error(error));
 }
 
-$(document).ready(function(){
-    $("#nextButton").click(function () {
-        currentIndex++;
-        $("#overlay2").fadeIn(300);
-        fetchAndDisplayImage();
-    });
-});
+//function to choose random letter for search query, meaning each "revisit" to a gallery yeilds different artworks
+function getRandomLetter(){
+    const randomInd = Math.floor(Math.random() * queryLetters.length);
+    console.log(queryLetters);
+    console.log(`removing: ${queryLetters.charAt(randomInd)}`)
+    let char = queryLetters.charAt(randomInd);
+    queryLetters = queryLetters.replace(char,"");
+    if(queryLetters.length == 0){
+        queryLetters = "abcdefghijlmnoprstuw";
+    }
+    return char;
+    
+}
+
 
 
 
