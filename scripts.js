@@ -35,6 +35,9 @@ $(document).ready(function(){
         $("#map_image").show();
         $("#backButton").hide();
         $("#nextButton").hide();
+        $("#label").css({
+            visibility: "hidden"
+        });
         $(".artwork_container").css({
             visibility: "hidden"
         });
@@ -54,6 +57,9 @@ $(document).ready(function(){
         $("#map_image").hide();
         $("#backButton").show();
         $("#nextButton").show();
+        $("#label").css({
+            visibility: "visible"
+        });
        // $("#nextButton").show();
         $(".artwork_container").css({ visibility: "visible" });
         $("#overlay2").fadeIn(300);
@@ -156,7 +162,6 @@ $(document).ready(function(){
 
 $(document).ready(function(){
     const label = document.getElementById("labelText");
-
     $("#label").click(function(e){
         e.stopPropagation();
         if (labelClicked) return;
@@ -202,6 +207,35 @@ $(document).ready(function(){
     });
 });
 
+$(document).ready(function () {
+    // Pre-expand once invisibly to stabilize layout
+    const $label = $("#label");
+
+    // Save original styles
+    const originalStyles = {
+        position: $label.css("position"),
+        top: $label.css("top"),
+        left: $label.css("left"),
+        transform: $label.css("transform"),
+        visibility: $label.css("visibility")
+    };
+
+    // Apply expanded state invisibly
+    $label.css({
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%) scale(1.5)",
+        visibility: "hidden"
+    });
+
+    // Force layout calculation
+    $label[0].offsetHeight;
+
+    // Restore original styles
+    $label.css(originalStyles);
+});
+
 function fetchAndDisplayImage() {
     if (currentIndex >= objectIDs.length) {
         alert("No more images.");
@@ -237,6 +271,7 @@ function fetchAndDisplayImage() {
 $(document).ready(function(){
     $("#nextButton").click(function () {
         currentIndex++;
+        $("#overlay2").fadeIn(300);
         fetchAndDisplayImage();
     });
 });
