@@ -11,9 +11,12 @@ const departmentMap = {
     "Asian": 6
 }
 
+let artworkType = "";
 let artistName = "";
 let title = "";
 let period = "";
+let departmentId;
+let departmentName = "";
 let labelClicked = false;
 let originalRect = null;
 let objectIDs = [];
@@ -21,7 +24,7 @@ let usedLetters = [];
 let currentIndex = 0;
 
 
-let queryLetters = "abcdefghijlmnoprstuw"
+let queryLetters = "abcdefghijlmnoprstuw";
 
 
 
@@ -34,6 +37,11 @@ $(document).ready(function(){
         $("#backButton").hide();
         $("#nextButton").hide();
         $("#galleryText").show();
+        $("#similarText").hide();
+        $("#similarButton").hide();
+      
+
+
        /* $("#label").css({
             visibility: "hidden"
         });*/
@@ -57,7 +65,31 @@ $(document).ready(function(){
     $("#nextButton").click(function () {
         currentIndex++;
         $("#overlay2").fadeIn(300);
-        fetchAndDisplayImage();
+        fetchAndDisplayImage().catch(err =>{
+            $("#overlay2").fadeOut(300);
+        });
+    });
+});
+
+$(document).ready(function(){
+    $("#similarButton").click(function(){
+        const text = document.getElementById("similarText");
+        if(artworkType != ""){
+            fetchNew(departmentId, artworkType);
+            $("#similarText").show();
+            text.innerHTML = `showing: ${artworkType} from department: ${departmentName}`;
+        }
+        else{
+            text.innerHTML = "No similar items";
+            $("#similarText").fadeIn(300, function () {
+                setTimeout(() => {
+                    $("#similarText").fadeOut(300);
+                }, 1000); // waits 1 second before fading out
+            });
+        }
+        console.log(`showing: ${artworkType} from department: ${departmentName}`);
+        
+
     });
 });
 
@@ -86,6 +118,7 @@ $(document).ready(function(){
         $("#map_image").hide();
         $("#backButton").show();
         $("#nextButton").show();
+        $("#similarButton").show();
         $("#label").show();
         $("#galleryText").hide();
         $("#label").css({
@@ -96,20 +129,11 @@ $(document).ready(function(){
         $("#overlay2").fadeIn(300);
     
         const output = document.getElementById("outputImage");
-        const departmentId = departmentMap[this.title];
+        departmentId = departmentMap[this.title];
+        departmentName = this.title;
         const query = getRandomLetter();
+        fetchNew(departmentId,query);
     
-        fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=${departmentId}&q=${query}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                objectIDs = data.objectIDs || [];
-               // console.log(objectIDs);
-                currentIndex = 0;
-                fetchAndDisplayImage();
-            });
     });
 });
 
@@ -191,39 +215,61 @@ $(document).ready(function () {
     $label.css(originalStyles);
 });
 
-//function to fetch images -- requests until artwork with available image is found
-function fetchAndDisplayImage() {
-    if (currentIndex >= objectIDs.length) {
-        alert("No more images.");
-        return;
-    }
-
-    const output = document.getElementById("outputImage");
-    const id = objectIDs[currentIndex];
-   // console.log(`fetching : ${id}`);
-
-    fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data2 => {
-            if (data2.primaryImageSmall) {
-                $("#overlay2").fadeOut(300);
-                output.src = data2.primaryImageSmall;
-
-                artistName = data2.artistDisplayName || "Unknown";
-                period = data2.objectDate;
-                title = data2.title;
-                document.getElementById("labelText").innerHTML = title;
-            } else {
-                currentIndex++;
-                fetchAndDisplayImage(); // Skip and try next
-            }
-        })
-        .catch(error => console.error(error));
+function fetchNew(departmentId, query) {
+    fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=${departmentId}&q=${query}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                objectIDs = data.objectIDs || [];
+               // console.log(objectIDs);
+                currentIndex = 0;
+                fetchAndDisplayImage();
+            });
 }
 
+//function to fetch images -- requests until artwork with available image is found
+function fetchAndDisplayImage() {
+    return new Promise((resolve, reject) => {
+        if (currentIndex >= objectIDs.length) {
+            alert("End of gallery.");
+            $("#overlay2").fadeOut(300);
+            return reject(new Error("No more images."));
+        }
+
+        const output = document.getElementById("outputImage");
+        const id = objectIDs[currentIndex];
+
+        fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data2 => {
+                if (data2.primaryImageSmall) {
+                    $("#overlay2").fadeOut(300);
+                    output.src = data2.primaryImageSmall;
+                    console.log(data2);
+                    artistName = data2.artistDisplayName || "Unknown";
+                    period = data2.objectDate;
+                    title = data2.title;
+                    artworkType = data2.classification;
+                    document.getElementById("labelText").innerHTML = title;
+
+                    resolve();
+                } else {
+                    currentIndex++;
+                    fetchAndDisplayImage().then(resolve).catch(reject); // Try next
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                $("#overlay2").fadeOut(300);
+                reject(error);
+            });
+    });
+}
 //function to choose random letter for search query, meaning each "revisit" to a gallery yeilds different artworks
 function getRandomLetter(){
     const randomInd = Math.floor(Math.random() * queryLetters.length);

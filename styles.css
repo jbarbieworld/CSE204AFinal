@@ -15,11 +15,11 @@
     font-family:Georgia, 'Times New Roman', Times, serif ;
     font-size: 30pt;
   }
-  /*#outputImage{
-    border: 100px solid transparent;
-    border-image: url(frame.png) 30 round;
-   
-  }*/
+  #similarText{
+    font-size: 10pt;
+    display: none;
+  }
+  
   #imageContainer {
     position: relative;
     z-index: 10; /* lowest */
