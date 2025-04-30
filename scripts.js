@@ -20,8 +20,12 @@ let departmentName = "";
 let labelClicked = false;
 let originalRect = null;
 let objectIDs = [];
+let currentId;
 let usedLetters = [];
-let currentIndex = 0;
+let prevIds = [];
+let prevIndex = -1;
+let currentIndex = -1;
+let inPrevArray = false;
 
 
 let queryLetters = "abcdefghijlmnoprstuw";
@@ -36,6 +40,7 @@ $(document).ready(function(){
         $("#map_image").show();
         $("#backButton").hide();
         $("#nextButton").hide();
+        $("#prevButton").hide();
         $("#galleryText").show();
         $("#similarText").hide();
         $("#similarButton").hide();
@@ -55,13 +60,92 @@ $(document).ready(function(){
 });
 
 //Next button handling
-$(document).ready(function(){
+/*$(document).ready(function(){
     $("#nextButton").click(function () {
-        currentIndex++;
-        $("#overlay2").fadeIn(300);
-        fetchAndDisplayImage().catch(err =>{
-            $("#overlay2").fadeOut(300);
-        });
+        if(!inPrevArray){
+            prevIds.push(currentId);
+            currentIndex++;
+            const id = objectIDs[currentIndex];
+            $("#overlay2").fadeIn(300);
+            prevIndex = prevIds.length - 1;
+            fetchAndDisplayImage(id).catch(err =>{
+                $("#overlay2").fadeOut(300);
+            });
+        }
+        else{
+            prevIndex++;
+            console.log(prevIndex);
+            console.log(prevIds);
+            console.log(prevIds.length);
+            let id = "";
+            if(prevIndex == prevIds.length - 1){
+              id = objectIDs[currentIndex];
+              inPrevArray = false;
+            }
+            else{
+              id = prevIds[prevIndex];
+            }
+            fetchAndDisplayImage(id).catch(err =>{
+                $("#overlay2").fadeOut(300);
+            });
+        }
+        
+    });
+});
+
+$(document).ready(function(){
+    $("#prevButton").click(function () { 
+        
+            const id = prevIds[prevIndex];
+            $("#overlay2").fadeIn(300);
+            inPrevArray = true;
+            fetchAndDisplayImage(id).catch(err =>{
+                $("#overlay2").fadeOut(300);
+            });
+            if(prevIndex != 0){prevIndex--};
+           
+        
+       
+    });
+});*/
+
+$(document).ready(function () {
+    $("#nextButton").click(function () {
+        // If we're still in previously viewed history
+        if (inPrevArray && prevIndex + 1 < prevIds.length) {
+            prevIndex++;
+            const id = prevIds[prevIndex];
+            $("#overlay2").fadeIn(300);
+            fetchAndDisplayImage(id).catch(() => $("#overlay2").fadeOut(300));
+
+            // If we reach the end of history, we're switching back to new images
+            if (prevIndex === prevIds.length - 1) {
+                inPrevArray = false;
+            }
+        } else {
+            // Fetch new image from objectIDs
+            currentIndex++;
+            if (currentIndex >= objectIDs.length) return; // No more items
+
+            const id = objectIDs[currentIndex];
+            prevIds.push(id);
+            prevIndex = prevIds.length - 1; // update history pointer
+            inPrevArray = false;
+
+            $("#overlay2").fadeIn(300);
+            fetchAndDisplayImage(id).catch(() => $("#overlay2").fadeOut(300));
+        }
+    });
+
+    $("#prevButton").click(function () {
+        if (prevIndex > 0) {
+            prevIndex--;
+            const id = prevIds[prevIndex];
+            inPrevArray = true;
+
+            $("#overlay2").fadeIn(300);
+            fetchAndDisplayImage(id).catch(() => $("#overlay2").fadeOut(300));
+        }
     });
 });
 
@@ -114,6 +198,7 @@ $(document).ready(function(){
         $("#backButton").show();
         $("#nextButton").show();
         $("#similarButton").show();
+        $("#prevButton").show();
         $("#label").show();
         $("#galleryText").hide();
         $("#label").css({
@@ -217,12 +302,15 @@ function fetchNew(departmentId, query) {
                 objectIDs = data.objectIDs || [];
                // console.log(objectIDs);
                 currentIndex = 0;
-                fetchAndDisplayImage();
+                const id = objectIDs[currentIndex];
+                prevIds = [];
+                prevIds.push(id);
+                fetchAndDisplayImage(id);
             });
 }
 
 //function to fetch images -- recursively requests until artwork with available image is found
-function fetchAndDisplayImage() {
+function fetchAndDisplayImage(id) {
     return new Promise((resolve, reject) => {
         if (currentIndex >= objectIDs.length) {
             alert("End of gallery.");
@@ -231,7 +319,7 @@ function fetchAndDisplayImage() {
         }
 
         const output = document.getElementById("outputImage");
-        const id = objectIDs[currentIndex];
+        
 
         fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
             .then(response => {
@@ -246,13 +334,15 @@ function fetchAndDisplayImage() {
                     artistName = data2.artistDisplayName || "Unknown";
                     period = data2.objectDate;
                     title = data2.title;
+                    currentId = data2.objectID
+                    console.log(`currentID: ${currentId}`);
                     artworkType = data2.classification.replace("-", " & ");
                     document.getElementById("labelText").innerHTML = title;
 
                     resolve();
                 } else {
                     currentIndex++;
-                    fetchAndDisplayImage().then(resolve).catch(reject); // Try next
+                    fetchAndDisplayImage(objectIDs[currentIndex]).then(resolve).catch(reject); // Try next
                 }
             })
             .catch(error => {
