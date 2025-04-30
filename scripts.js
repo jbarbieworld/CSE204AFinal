@@ -59,56 +59,8 @@ $(document).ready(function(){
     });
 });
 
-//Next button handling
-/*$(document).ready(function(){
-    $("#nextButton").click(function () {
-        if(!inPrevArray){
-            prevIds.push(currentId);
-            currentIndex++;
-            const id = objectIDs[currentIndex];
-            $("#overlay2").fadeIn(300);
-            prevIndex = prevIds.length - 1;
-            fetchAndDisplayImage(id).catch(err =>{
-                $("#overlay2").fadeOut(300);
-            });
-        }
-        else{
-            prevIndex++;
-            console.log(prevIndex);
-            console.log(prevIds);
-            console.log(prevIds.length);
-            let id = "";
-            if(prevIndex == prevIds.length - 1){
-              id = objectIDs[currentIndex];
-              inPrevArray = false;
-            }
-            else{
-              id = prevIds[prevIndex];
-            }
-            fetchAndDisplayImage(id).catch(err =>{
-                $("#overlay2").fadeOut(300);
-            });
-        }
-        
-    });
-});
-
-$(document).ready(function(){
-    $("#prevButton").click(function () { 
-        
-            const id = prevIds[prevIndex];
-            $("#overlay2").fadeIn(300);
-            inPrevArray = true;
-            fetchAndDisplayImage(id).catch(err =>{
-                $("#overlay2").fadeOut(300);
-            });
-            if(prevIndex != 0){prevIndex--};
-           
-        
-       
-    });
-});*/
-
+//Next and Prev button handling
+// if viewing previously viewed artworks next button traverses array, else it fetches new image 
 $(document).ready(function () {
     $("#nextButton").click(function () {
         // If we're still in previously viewed history
@@ -156,7 +108,7 @@ $(document).ready(function(){
         if(artworkType != ""){
             fetchNew(departmentId, artworkType);
             $("#similarText").show();
-            text.innerHTML = `showing: ${artworkType} from department: ${departmentName}`;
+            text.innerHTML = `Showing: ${artworkType} from department: ${departmentName}`;
         }
         else{
             text.innerHTML = "No similar items";
@@ -166,7 +118,7 @@ $(document).ready(function(){
                 }, 1000); // waits 1 second before fading out
             });
         }
-        console.log(`showing: ${artworkType} from department: ${departmentName}`);
+        //console.log(`showing: ${artworkType} from department: ${departmentName}`);
         
 
     });
@@ -289,7 +241,8 @@ $(document).ready(function () {
     $label.css(originalStyles);
 });
 
-//function to fetch fresh image when similar is clicked or when new area is clicked
+//function to fetch fresh image when similar is clicked or when new area is clicked 
+// also resets previously view artworks
 //@departmentId: Id of department to fetch from
 //@query: search term
 function fetchNew(departmentId, query) {
@@ -310,7 +263,8 @@ function fetchNew(departmentId, query) {
             });
 }
 
-//function to fetch images -- recursively requests until artwork with available image is found
+//function to fetch images -- recursively requests until artwork with available image is found 
+// adds artwork to previously viewed artworks
 function fetchAndDisplayImage(id) {
     return new Promise((resolve, reject) => {
         if (currentIndex >= objectIDs.length) {
@@ -331,20 +285,20 @@ function fetchAndDisplayImage(id) {
                 if (data2.primaryImageSmall) {
                     $("#overlay2").fadeOut(300);
                     output.src = data2.primaryImageSmall;
-                   // console.log(data2);
+                    console.log(data2);
                     artistName = data2.artistDisplayName || "Unknown";
                     period = data2.objectDate;
                     title = data2.title;
-                    currentId = data2.objectID
+                    currentId = data2.objectID;
                     if (!inPrevArray && !prevIds.includes(id)) {
                         prevIds.push(id);
                         prevIndex = prevIds.length - 1;
                     }
                     console.log(prevIds);
                     //console.log(`currentID: ${currentId}`);
-                    artworkType = data2.classification.replace("-", " & ");
+                    artworkType = data2.classification.replace("-", " & ") || data2.medium;
                     document.getElementById("labelText").innerHTML = title;
-
+                    capitalizeFirstLetter(artworkType);
                     resolve();
                 } else {
                     currentIndex++;
@@ -365,12 +319,14 @@ function getRandomLetter(){
     //console.log(`removing: ${queryLetters.charAt(randomInd)}`)
     let char = queryLetters.charAt(randomInd);
     queryLetters = queryLetters.replace(char,"");
+    //resets if viewed all letters -- you must really enjoy :)
     if(queryLetters.length == 0){
         queryLetters = "abcdefghijlmnoprstuw";
     }
     return char;
     
 }
+
 
 function capitalizeFirstLetter(val) {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
