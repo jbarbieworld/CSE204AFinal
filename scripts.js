@@ -128,8 +128,8 @@ $(document).ready(function () {
             if (currentIndex >= objectIDs.length) return; // No more items
 
             const id = objectIDs[currentIndex];
-            prevIds.push(id);
-            prevIndex = prevIds.length - 1; // update history pointer
+            //prevIds.push(id);
+           // prevIndex = prevIds.length - 1; // update history pointer
             inPrevArray = false;
 
             $("#overlay2").fadeIn(300);
@@ -142,7 +142,7 @@ $(document).ready(function () {
             prevIndex--;
             const id = prevIds[prevIndex];
             inPrevArray = true;
-
+            console.log(prevIndex);
             $("#overlay2").fadeIn(300);
             fetchAndDisplayImage(id).catch(() => $("#overlay2").fadeOut(300));
         }
@@ -304,7 +304,8 @@ function fetchNew(departmentId, query) {
                 currentIndex = 0;
                 const id = objectIDs[currentIndex];
                 prevIds = [];
-                prevIds.push(id);
+                prevIndex = -1;
+                inPrevArray = false;
                 fetchAndDisplayImage(id);
             });
 }
@@ -335,7 +336,12 @@ function fetchAndDisplayImage(id) {
                     period = data2.objectDate;
                     title = data2.title;
                     currentId = data2.objectID
-                    console.log(`currentID: ${currentId}`);
+                    if (!inPrevArray && !prevIds.includes(id)) {
+                        prevIds.push(id);
+                        prevIndex = prevIds.length - 1;
+                    }
+                    console.log(prevIds);
+                    //console.log(`currentID: ${currentId}`);
                     artworkType = data2.classification.replace("-", " & ");
                     document.getElementById("labelText").innerHTML = title;
 
