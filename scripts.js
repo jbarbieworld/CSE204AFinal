@@ -1,14 +1,14 @@
 
 const departmentMap = {
-    "egypt" : 10,
-    "knights" : 4,
-    "africa" : 5, 
-    "decorative" : 12,
-    "greek" : 13,
-    "american" : 1,
-    "photos" : 9,
-    "islamic": 14,
-    "asian": 6
+    "Egypt" : 10,
+    "Knights" : 4,
+    "African" : 5, 
+    "European" : 12,
+    "Greek" : 13,
+    "American" : 1,
+    "Printmaking" : 9,
+    "Islamic": 14,
+    "Asian": 6
 }
 
 let artistName = "";
@@ -33,9 +33,11 @@ $(document).ready(function(){
         $("#map_image").show();
         $("#backButton").hide();
         $("#nextButton").hide();
-        $("#label").css({
+        $("#galleryText").show();
+       /* $("#label").css({
             visibility: "hidden"
-        });
+        });*/
+        $("#label").hide();
         $(".artwork_container").css({
             visibility: "hidden"
         });
@@ -44,6 +46,7 @@ $(document).ready(function(){
         const label = document.getElementById("labelText");
         label.innerHTML = "";
 
+        window.scrollTo(0, 0);
         
         
     });
@@ -58,6 +61,23 @@ $(document).ready(function(){
     });
 });
 
+$(document).ready(function(){
+    $('area').mouseenter(function () {
+        const text = document.getElementById("galleryText");
+        let title = this.title;
+        capitalizeFirstLetter(title);
+        text.innerHTML = title
+    });
+});
+
+$(document).ready(function(){
+    $("#map_image").mouseleave(function () {
+        const text = document.getElementById("galleryText");
+       
+        text.innerHTML = "Choose a gallery:"
+    });
+});
+
 
 //Image map handling -- fetches first image
 $(document).ready(function(){
@@ -66,6 +86,8 @@ $(document).ready(function(){
         $("#map_image").hide();
         $("#backButton").show();
         $("#nextButton").show();
+        $("#label").show();
+        $("#galleryText").hide();
         $("#label").css({
             visibility: "visible"
         });
@@ -214,6 +236,10 @@ function getRandomLetter(){
     }
     return char;
     
+}
+
+function capitalizeFirstLetter(val) {
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
 
 

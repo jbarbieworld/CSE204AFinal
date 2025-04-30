@@ -2,12 +2,18 @@
    
     max-width: 800px;
     padding: 50px;
-    background-color: #efe3df;
+    background-color: #f9f9f4;
     border-style: double;
     border-radius: 0.1rem;
     outline-offset:9px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 
+  }
+  #galleryText{
+    position: fixed;
+    top: 0;
+    font-family:Georgia, 'Times New Roman', Times, serif ;
+    font-size: 30pt;
   }
   /*#outputImage{
     border: 100px solid transparent;
@@ -69,7 +75,7 @@
     align-items: center;
     gap: 2rem;
     min-height: 100vh;
-    background-color: #f8ddd4;
+    background-color: #f8f5ef;
     z-index: 5;
 
   }
@@ -111,5 +117,6 @@
     transition: all 0.5s ease;
 }*/
 p {
+    font-family:Georgia, 'Times New Roman', Times, serif ;
     max-width: 600px;
 }
