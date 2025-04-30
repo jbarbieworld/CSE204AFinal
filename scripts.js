@@ -39,12 +39,6 @@ $(document).ready(function(){
         $("#galleryText").show();
         $("#similarText").hide();
         $("#similarButton").hide();
-      
-
-
-       /* $("#label").css({
-            visibility: "hidden"
-        });*/
         $("#label").hide();
         $(".artwork_container").css({
             visibility: "hidden"
@@ -71,6 +65,7 @@ $(document).ready(function(){
     });
 });
 
+//similar button handling
 $(document).ready(function(){
     $("#similarButton").click(function(){
         const text = document.getElementById("similarText");
@@ -93,6 +88,8 @@ $(document).ready(function(){
     });
 });
 
+
+//Handle mousing over/out of map image
 $(document).ready(function(){
     $('area').mouseenter(function () {
         const text = document.getElementById("galleryText");
@@ -100,15 +97,13 @@ $(document).ready(function(){
         capitalizeFirstLetter(title);
         text.innerHTML = title
     });
-});
 
-$(document).ready(function(){
     $("#map_image").mouseleave(function () {
         const text = document.getElementById("galleryText");
-       
         text.innerHTML = "Choose a gallery:"
     });
 });
+
 
 
 //Image map handling -- fetches first image
@@ -124,7 +119,6 @@ $(document).ready(function(){
         $("#label").css({
             visibility: "visible"
         });
-       // $("#nextButton").show();
         $(".artwork_container").css({ visibility: "visible" });
         $("#overlay2").fadeIn(300);
     
@@ -187,10 +181,8 @@ $(document).ready(function(){
 
 //Pre warming for label to prevent weirdness 
 $(document).ready(function () {
-    // Pre-expand once invisibly to stabilize layout
-    const $label = $("#label");
+     const $label = $("#label");
 
-    // Save original styles
     const originalStyles = {
         position: $label.css("position"),
         top: $label.css("top"),
@@ -199,7 +191,6 @@ $(document).ready(function () {
         visibility: $label.css("visibility")
     };
 
-    // Apply expanded state invisibly
     $label.css({
         position: "fixed",
         top: "50%",
@@ -208,13 +199,14 @@ $(document).ready(function () {
         visibility: "hidden"
     });
 
-    // Force layout calculation
     $label[0].offsetHeight;
 
-    // Restore original styles
     $label.css(originalStyles);
 });
 
+//function to fetch fresh image when similar is clicked or when new area is clicked
+//@departmentId: Id of department to fetch from
+//@query: search term
 function fetchNew(departmentId, query) {
     fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=${departmentId}&q=${query}`)
             .then(response => {
@@ -229,7 +221,7 @@ function fetchNew(departmentId, query) {
             });
 }
 
-//function to fetch images -- requests until artwork with available image is found
+//function to fetch images -- recursively requests until artwork with available image is found
 function fetchAndDisplayImage() {
     return new Promise((resolve, reject) => {
         if (currentIndex >= objectIDs.length) {
@@ -250,11 +242,11 @@ function fetchAndDisplayImage() {
                 if (data2.primaryImageSmall) {
                     $("#overlay2").fadeOut(300);
                     output.src = data2.primaryImageSmall;
-                    console.log(data2);
+                   // console.log(data2);
                     artistName = data2.artistDisplayName || "Unknown";
                     period = data2.objectDate;
                     title = data2.title;
-                    artworkType = data2.classification;
+                    artworkType = data2.classification.replace("-", " & ");
                     document.getElementById("labelText").innerHTML = title;
 
                     resolve();
@@ -273,8 +265,8 @@ function fetchAndDisplayImage() {
 //function to choose random letter for search query, meaning each "revisit" to a gallery yeilds different artworks
 function getRandomLetter(){
     const randomInd = Math.floor(Math.random() * queryLetters.length);
-    console.log(queryLetters);
-    console.log(`removing: ${queryLetters.charAt(randomInd)}`)
+    //console.log(queryLetters);
+    //console.log(`removing: ${queryLetters.charAt(randomInd)}`)
     let char = queryLetters.charAt(randomInd);
     queryLetters = queryLetters.replace(char,"");
     if(queryLetters.length == 0){
