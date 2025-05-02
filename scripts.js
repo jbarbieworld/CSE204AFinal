@@ -241,7 +241,7 @@ $(document).ready(function () {
     $label.css(originalStyles);
 });
 
-//function to fetch fresh image when similar is clicked or when new area is clicked 
+//function to fetch new object when similar is clicked or when new area is clicked 
 // also resets previously view artworks
 //@departmentId: Id of department to fetch from
 //@query: search term
